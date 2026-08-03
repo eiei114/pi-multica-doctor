@@ -1,0 +1,67 @@
+{
+  "name": "pi-multica-doctor",
+  "version": "0.1.0",
+  "description": "Multica workspace health, one command",
+  "type": "module",
+  "license": "MIT",
+  "author": "eiei114",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "multica",
+    "diagnostics",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eiei114/pi-multica-doctor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eiei114/pi-multica-doctor/issues"
+  },
+  "homepage": "https://github.com/eiei114/pi-multica-doctor#readme",
+  "bin": {
+    "pi-multica-doctor": "bin/multica-doctor-check.js",
+    "multica-doctor-check": "bin/multica-doctor-check.js"
+  },
+  "files": [
+    "bin/",
+    "extensions/",
+    "src/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "ci": "npm run check",
+    "pack:check": "npm pack --dry-run",
+    "build": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run pack:check"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "commands": {
+      "multica-doctor-check": "./bin/multica-doctor-check.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.3"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.6",
+    "@earendil-works/pi-tui": "^0.80.6",
+    "@types/node": "^26.0.0",
+    "typebox": "latest",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
