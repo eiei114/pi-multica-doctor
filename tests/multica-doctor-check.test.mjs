@@ -18,8 +18,22 @@ const healthyAuthContext = {
   getToken: () => "test-token",
 };
 
+const healthyCliSyntax = {
+  execHelp: () => `
+Change an issue's status.
+
+USAGE
+  multica issue status <id> <status> [flags]
+`,
+};
+
+const healthyOptions = {
+  authContext: healthyAuthContext,
+  cliSyntax: healthyCliSyntax,
+};
+
 test("multicaDoctorCheck returns the expected JSON contract shape", () => {
-  const result = multicaDoctorCheck({ authContext: healthyAuthContext });
+  const result = multicaDoctorCheck(healthyOptions);
 
   assert.deepEqual(result.checks, [...CHECK_NAMES]);
   assert.equal(result.pass, true);
@@ -28,7 +42,7 @@ test("multicaDoctorCheck returns the expected JSON contract shape", () => {
 });
 
 test("multicaDoctorCheck lists all five probes", () => {
-  const result = multicaDoctorCheck({ authContext: healthyAuthContext });
+  const result = multicaDoctorCheck(healthyOptions);
 
   assert.equal(result.checks.length, 5);
   assert.deepEqual(result.checks, [
@@ -40,20 +54,22 @@ test("multicaDoctorCheck lists all five probes", () => {
   ]);
 });
 
-test("non-auth probes remain stubbed as pass", () => {
-  const results = getProbeResults({ authContext: healthyAuthContext });
+test("non-implemented probes remain stubbed as pass", () => {
+  const results = getProbeResults(healthyOptions);
 
   assert.equal(results.length, 5);
   for (const probe of results) {
     assert.ok(CHECK_NAMES.includes(probe.check));
-    if (probe.check !== "auth_context") {
+    if (probe.check === "auth_context" || probe.check === "cli_syntax") {
       assert.equal(probe.status, "pass");
+      continue;
     }
+    assert.equal(probe.status, "pass");
   }
 });
 
 test("multicaDoctorCheck never throws", () => {
-  assert.doesNotThrow(() => multicaDoctorCheck({ authContext: healthyAuthContext }));
+  assert.doesNotThrow(() => multicaDoctorCheck(healthyOptions));
 });
 
 test("auth_context passes when daemon marker is absent and token is present", () => {
@@ -126,9 +142,23 @@ test("multicaDoctorCheck includes auth_context failure in failures array", () =>
       existsSync: () => true,
       getToken: () => undefined,
     },
+    cliSyntax: healthyCliSyntax,
   });
 
   assert.equal(result.pass, false);
   assert.equal(result.fail_count, 1);
   assert.equal(result.failures[0]?.check, "auth_context");
+});
+
+test("multicaDoctorCheck includes cli_syntax failure in failures array", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    cliSyntax: {
+      execHelp: () => "multica issue status <id> --set <status>",
+    },
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "cli_syntax");
 });

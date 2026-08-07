@@ -9,6 +9,10 @@ import {
   checkAuthContext,
   type AuthContextDeps,
 } from "./probes/auth_context.ts";
+import {
+  checkCliSyntax,
+  type CliSyntaxDeps,
+} from "./probes/cli_syntax.ts";
 
 export const CHECK_NAMES = [
   "auth_context",
@@ -44,17 +48,21 @@ export interface MulticaDoctorResult {
 
 export interface MulticaDoctorCheckOptions {
   authContext?: AuthContextDeps;
+  cliSyntax?: CliSyntaxDeps;
 }
 
+const IMPLEMENTED_PROBES = new Set<CheckName>(["auth_context", "cli_syntax"]);
+
 function buildStaticProbeResults(): ProbeResult[] {
-  return CHECK_NAMES.filter((check) => check !== "auth_context").map(
+  return CHECK_NAMES.filter((check) => !IMPLEMENTED_PROBES.has(check)).map(
     (check) => ({ check, status: "pass" }),
   );
 }
 
 function buildProbeResults(options: MulticaDoctorCheckOptions = {}): ProbeResult[] {
   const authContext = checkAuthContext(options.authContext);
-  return [authContext, ...buildStaticProbeResults()];
+  const cliSyntax = checkCliSyntax(options.cliSyntax);
+  return [authContext, cliSyntax, ...buildStaticProbeResults()];
 }
 
 function toFailures(results: readonly ProbeResult[]): CheckFailure[] {
