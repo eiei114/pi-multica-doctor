@@ -13,6 +13,10 @@ import {
   checkCliSyntax,
   type CliSyntaxDeps,
 } from "./probes/cli_syntax.ts";
+import {
+  checkRegistryTables,
+  type RegistryTablesDeps,
+} from "./probes/registry_tables.ts";
 
 export const CHECK_NAMES = [
   "auth_context",
@@ -49,9 +53,14 @@ export interface MulticaDoctorResult {
 export interface MulticaDoctorCheckOptions {
   authContext?: AuthContextDeps;
   cliSyntax?: CliSyntaxDeps;
+  registryTables?: RegistryTablesDeps;
 }
 
-const IMPLEMENTED_PROBES = new Set<CheckName>(["auth_context", "cli_syntax"]);
+const IMPLEMENTED_PROBES = new Set<CheckName>([
+  "auth_context",
+  "cli_syntax",
+  "registry_tables",
+]);
 
 function buildStaticProbeResults(): ProbeResult[] {
   return CHECK_NAMES.filter((check) => !IMPLEMENTED_PROBES.has(check)).map(
@@ -62,7 +71,8 @@ function buildStaticProbeResults(): ProbeResult[] {
 function buildProbeResults(options: MulticaDoctorCheckOptions = {}): ProbeResult[] {
   const authContext = checkAuthContext(options.authContext);
   const cliSyntax = checkCliSyntax(options.cliSyntax);
-  return [authContext, cliSyntax, ...buildStaticProbeResults()];
+  const registryTables = checkRegistryTables(options.registryTables);
+  return [authContext, cliSyntax, registryTables, ...buildStaticProbeResults()];
 }
 
 function toFailures(results: readonly ProbeResult[]): CheckFailure[] {

@@ -27,9 +27,29 @@ USAGE
 `,
 };
 
+const healthyRegistryTables = {
+  cwd: () => "/vault",
+  getVaultRoot: () => undefined,
+  existsSync: () => true,
+  readFileSync: () => `
+## Projects
+
+| project_key | multica_project_id | project_name | repo/workspace | status | priority | lead | notes |
+|---|---|---|---|---|---|---|---|
+| pi-multica-doctor | \`id\` | name | \`repo\` | in_progress | high | lead | notes |
+
+## Local Issue Import mapping
+
+| project_key | obsidian_project_path | local_issue_dir | local_issue_glob | local_issue_import_enabled |
+|---|---|---|---|---|
+| pi-multica-doctor | \`4_Project/OSS/pi-multica-doctor\` | \`Issues\` | \`*.md\` | true |
+`,
+};
+
 const healthyOptions = {
   authContext: healthyAuthContext,
   cliSyntax: healthyCliSyntax,
+  registryTables: healthyRegistryTables,
 };
 
 test("multicaDoctorCheck returns the expected JSON contract shape", () => {
@@ -60,7 +80,11 @@ test("non-implemented probes remain stubbed as pass", () => {
   assert.equal(results.length, 5);
   for (const probe of results) {
     assert.ok(CHECK_NAMES.includes(probe.check));
-    if (probe.check === "auth_context" || probe.check === "cli_syntax") {
+    if (
+      probe.check === "auth_context" ||
+      probe.check === "cli_syntax" ||
+      probe.check === "registry_tables"
+    ) {
       assert.equal(probe.status, "pass");
       continue;
     }
@@ -143,6 +167,7 @@ test("multicaDoctorCheck includes auth_context failure in failures array", () =>
       getToken: () => undefined,
     },
     cliSyntax: healthyCliSyntax,
+    registryTables: healthyRegistryTables,
   });
 
   assert.equal(result.pass, false);
@@ -156,9 +181,27 @@ test("multicaDoctorCheck includes cli_syntax failure in failures array", () => {
     cliSyntax: {
       execHelp: () => "multica issue status <id> --set <status>",
     },
+    registryTables: healthyRegistryTables,
   });
 
   assert.equal(result.pass, false);
   assert.equal(result.fail_count, 1);
   assert.equal(result.failures[0]?.check, "cli_syntax");
+});
+
+test("multicaDoctorCheck includes registry_tables failure in failures array", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    cliSyntax: healthyCliSyntax,
+    registryTables: {
+      cwd: () => "/vault",
+      getVaultRoot: () => undefined,
+      existsSync: () => false,
+      readFileSync: () => "",
+    },
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "registry_tables");
 });
