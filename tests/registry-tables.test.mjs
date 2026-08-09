@@ -63,6 +63,36 @@ test("parseTableAfterHeading parses rows with expected column counts", () => {
   assert.equal(parsed.rows[0]?.[0], "pi-multica-doctor");
 });
 
+test("parseTableAfterHeading preserves escaped and code-span pipes", () => {
+  const text = `
+${PROJECTS_HEADING}
+| a | b |
+| --- | --- |
+| escaped \\| pipe | \`code|pipe\` |
+`;
+
+  const parsed = parseTableAfterHeading(text, PROJECTS_HEADING);
+  assert.deepEqual(parsed.rows, [["escaped \\| pipe", "code|pipe"]]);
+});
+
+test("validateRegistryTableContent fails when the separator row is missing", () => {
+  const malformed = validRegistryMarkdown.replace(
+    validProjectsSeparator,
+    "| not a separator |",
+  );
+  const problems = validateRegistryTableContent(malformed);
+  assert.ok(problems.some((problem) => /separator/i.test(problem.detail)));
+});
+
+test("validateRegistryTableContent requires exact section headings", () => {
+  const malformed = validRegistryMarkdown.replace(
+    PROJECTS_HEADING,
+    "### Projects",
+  );
+  const problems = validateRegistryTableContent(malformed);
+  assert.ok(problems.some((problem) => /heading missing/i.test(problem.detail)));
+});
+
 test("validateHeaders accepts expected Projects headers", () => {
   assert.equal(
     validateHeaders([...PROJECTS_HEADERS], PROJECTS_HEADERS, PROJECTS_HEADING),

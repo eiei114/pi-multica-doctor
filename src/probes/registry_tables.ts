@@ -61,17 +61,17 @@ export function cleanCell(cell: string): string {
  * Collect contiguous Markdown table lines after a section heading.
  */
 export function collectTableLines(text: string, heading: string): string[] {
-  const idx = text.indexOf(heading);
+  const lines = text.split(/\r?\n/);
+  const idx = lines.findIndex((line) => line.trim() === heading);
   if (idx === -1) {
     throw new Error(`heading missing: ${heading}`);
   }
 
-  const rest = text.slice(idx).split(/\r?\n/);
   const tableLines: string[] = [];
   let started = false;
 
-  for (const line of rest.slice(1)) {
-    if (line.startsWith("## ") && started) {
+  for (const line of lines.slice(idx + 1)) {
+    if (/^#{1,6}\s/.test(line.trim()) && started) {
       break;
     }
     if (line.trim().startsWith("|")) {
@@ -92,12 +92,51 @@ export function collectTableLines(text: string, heading: string): string[] {
 }
 
 function parseTableRow(line: string): string[] {
-  return line
-    .trim()
-    .replace(/^\|/, "")
-    .replace(/\|$/, "")
-    .split("|")
-    .map(cleanCell);
+  const trimmed = line.trim();
+  const start = trimmed.startsWith("|") ? 1 : 0;
+  const lastIndex = trimmed.length - 1;
+  const end =
+    trimmed.endsWith("|") && !isEscapedAt(trimmed, lastIndex)
+      ? lastIndex
+      : trimmed.length;
+  const cells: string[] = [];
+  let cell = "";
+  let inCodeSpan = false;
+
+  for (let index = start; index < end; index += 1) {
+    const character = trimmed[index] ?? "";
+    const isEscaped = isEscapedAt(trimmed, index);
+
+    if (character === "`" && !isEscaped) {
+      inCodeSpan = !inCodeSpan;
+    }
+
+    if (character === "|" && !inCodeSpan && !isEscaped) {
+      cells.push(cleanCell(cell));
+      cell = "";
+    } else {
+      cell += character;
+    }
+  }
+
+  cells.push(cleanCell(cell));
+  return cells;
+}
+
+function isEscapedAt(text: string, index: number): boolean {
+  let slashCount = 0;
+  for (
+    let cursor = index - 1;
+    cursor >= 0 && text[cursor] === "\\";
+    cursor -= 1
+  ) {
+    slashCount += 1;
+  }
+  return slashCount % 2 === 1;
+}
+
+function isSeparatorRow(cells: readonly string[]): boolean {
+  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
 }
 
 export interface ParsedTable {
@@ -114,6 +153,12 @@ export function parseTableAfterHeading(
 ): ParsedTable {
   const tableLines = collectTableLines(text, heading);
   const headers = parseTableRow(tableLines[0] ?? "");
+  const separator = parseTableRow(tableLines[1] ?? "");
+
+  if (separator.length !== headers.length || !isSeparatorRow(separator)) {
+    throw new Error(`invalid separator row in ${heading}`);
+  }
+
   const rows: string[][] = [];
 
   for (const line of tableLines.slice(2)) {
