@@ -11,6 +11,7 @@ import {
   checkAuthContext,
   DAEMON_TASK_CONTEXT_RELATIVE,
 } from "../src/probes/auth_context.ts";
+import { FEEDBACK_EVENTS_RELATIVE } from "../src/probes/feedback_jsonl.ts";
 
 const healthyAuthContext = {
   cwd: () => "/workspace",
@@ -46,10 +47,22 @@ const healthyRegistryTables = {
 `,
 };
 
+const vaultRoot = "/vault";
+
+const healthyFeedbackJsonl = {
+  cwd: () => vaultRoot,
+  getVaultRoot: () => undefined,
+  existsSync: (path) =>
+    path === join(vaultRoot, FEEDBACK_EVENTS_RELATIVE),
+  readdirSync: () => ["2026-08.jsonl"],
+  readFileSync: () => '{"event":"ok"}\n',
+};
+
 const healthyOptions = {
   authContext: healthyAuthContext,
   cliSyntax: healthyCliSyntax,
   registryTables: healthyRegistryTables,
+  feedbackJsonl: healthyFeedbackJsonl,
 };
 
 test("multicaDoctorCheck returns the expected JSON contract shape", () => {
@@ -83,7 +96,8 @@ test("non-implemented probes remain stubbed as pass", () => {
     if (
       probe.check === "auth_context" ||
       probe.check === "cli_syntax" ||
-      probe.check === "registry_tables"
+      probe.check === "registry_tables" ||
+      probe.check === "feedback_jsonl"
     ) {
       assert.equal(probe.status, "pass");
       continue;
@@ -168,6 +182,7 @@ test("multicaDoctorCheck includes auth_context failure in failures array", () =>
     },
     cliSyntax: healthyCliSyntax,
     registryTables: healthyRegistryTables,
+    feedbackJsonl: healthyFeedbackJsonl,
   });
 
   assert.equal(result.pass, false);
@@ -182,6 +197,7 @@ test("multicaDoctorCheck includes cli_syntax failure in failures array", () => {
       execHelp: () => "multica issue status <id> --set <status>",
     },
     registryTables: healthyRegistryTables,
+    feedbackJsonl: healthyFeedbackJsonl,
   });
 
   assert.equal(result.pass, false);
@@ -199,9 +215,29 @@ test("multicaDoctorCheck includes registry_tables failure in failures array", ()
       existsSync: () => false,
       readFileSync: () => "",
     },
+    feedbackJsonl: healthyFeedbackJsonl,
   });
 
   assert.equal(result.pass, false);
   assert.equal(result.fail_count, 1);
   assert.equal(result.failures[0]?.check, "registry_tables");
+});
+
+test("multicaDoctorCheck includes feedback_jsonl failure in failures array", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    cliSyntax: healthyCliSyntax,
+    registryTables: healthyRegistryTables,
+    feedbackJsonl: {
+      cwd: () => vaultRoot,
+      getVaultRoot: () => undefined,
+      existsSync: () => false,
+      readdirSync: () => [],
+      readFileSync: () => "",
+    },
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "feedback_jsonl");
 });

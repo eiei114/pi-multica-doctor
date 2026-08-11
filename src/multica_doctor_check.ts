@@ -14,6 +14,10 @@ import {
   type CliSyntaxDeps,
 } from "./probes/cli_syntax.ts";
 import {
+  checkFeedbackJsonl,
+  type FeedbackJsonlDeps,
+} from "./probes/feedback_jsonl.ts";
+import {
   checkRegistryTables,
   type RegistryTablesDeps,
 } from "./probes/registry_tables.ts";
@@ -54,12 +58,14 @@ export interface MulticaDoctorCheckOptions {
   authContext?: AuthContextDeps;
   cliSyntax?: CliSyntaxDeps;
   registryTables?: RegistryTablesDeps;
+  feedbackJsonl?: FeedbackJsonlDeps;
 }
 
 const IMPLEMENTED_PROBES = new Set<CheckName>([
   "auth_context",
   "cli_syntax",
   "registry_tables",
+  "feedback_jsonl",
 ]);
 
 function buildStaticProbeResults(): ProbeResult[] {
@@ -72,7 +78,14 @@ function buildProbeResults(options: MulticaDoctorCheckOptions = {}): ProbeResult
   const authContext = checkAuthContext(options.authContext);
   const cliSyntax = checkCliSyntax(options.cliSyntax);
   const registryTables = checkRegistryTables(options.registryTables);
-  return [authContext, cliSyntax, registryTables, ...buildStaticProbeResults()];
+  const feedbackJsonl = checkFeedbackJsonl(options.feedbackJsonl);
+  return [
+    authContext,
+    cliSyntax,
+    registryTables,
+    feedbackJsonl,
+    ...buildStaticProbeResults(),
+  ];
 }
 
 function toFailures(results: readonly ProbeResult[]): CheckFailure[] {
