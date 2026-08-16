@@ -18,8 +18,42 @@ const healthyAuthContext = {
   getToken: () => "test-token",
 };
 
+const healthyCliSyntax = {
+  execHelp: () => `
+Change an issue's status.
+
+USAGE
+  multica issue status <id> <status> [flags]
+`,
+};
+
+const healthyRegistryTables = {
+  cwd: () => "/vault",
+  getVaultRoot: () => undefined,
+  existsSync: () => true,
+  readFileSync: () => `
+## Projects
+
+| project_key | multica_project_id | project_name | repo/workspace | status | priority | lead | notes |
+|---|---|---|---|---|---|---|---|
+| pi-multica-doctor | \`id\` | name | \`repo\` | in_progress | high | lead | notes |
+
+## Local Issue Import mapping
+
+| project_key | obsidian_project_path | local_issue_dir | local_issue_glob | local_issue_import_enabled |
+|---|---|---|---|---|
+| pi-multica-doctor | \`4_Project/OSS/pi-multica-doctor\` | \`Issues\` | \`*.md\` | true |
+`,
+};
+
+const healthyOptions = {
+  authContext: healthyAuthContext,
+  cliSyntax: healthyCliSyntax,
+  registryTables: healthyRegistryTables,
+};
+
 test("multicaDoctorCheck returns the expected JSON contract shape", () => {
-  const result = multicaDoctorCheck({ authContext: healthyAuthContext });
+  const result = multicaDoctorCheck(healthyOptions);
 
   assert.deepEqual(result.checks, [...CHECK_NAMES]);
   assert.equal(result.pass, true);
@@ -28,7 +62,7 @@ test("multicaDoctorCheck returns the expected JSON contract shape", () => {
 });
 
 test("multicaDoctorCheck lists all five probes", () => {
-  const result = multicaDoctorCheck({ authContext: healthyAuthContext });
+  const result = multicaDoctorCheck(healthyOptions);
 
   assert.equal(result.checks.length, 5);
   assert.deepEqual(result.checks, [
@@ -40,20 +74,26 @@ test("multicaDoctorCheck lists all five probes", () => {
   ]);
 });
 
-test("non-auth probes remain stubbed as pass", () => {
-  const results = getProbeResults({ authContext: healthyAuthContext });
+test("non-implemented probes remain stubbed as pass", () => {
+  const results = getProbeResults(healthyOptions);
 
   assert.equal(results.length, 5);
   for (const probe of results) {
     assert.ok(CHECK_NAMES.includes(probe.check));
-    if (probe.check !== "auth_context") {
+    if (
+      probe.check === "auth_context" ||
+      probe.check === "cli_syntax" ||
+      probe.check === "registry_tables"
+    ) {
       assert.equal(probe.status, "pass");
+      continue;
     }
+    assert.equal(probe.status, "pass");
   }
 });
 
 test("multicaDoctorCheck never throws", () => {
-  assert.doesNotThrow(() => multicaDoctorCheck({ authContext: healthyAuthContext }));
+  assert.doesNotThrow(() => multicaDoctorCheck(healthyOptions));
 });
 
 test("auth_context passes when daemon marker is absent and token is present", () => {
@@ -126,9 +166,42 @@ test("multicaDoctorCheck includes auth_context failure in failures array", () =>
       existsSync: () => true,
       getToken: () => undefined,
     },
+    cliSyntax: healthyCliSyntax,
+    registryTables: healthyRegistryTables,
   });
 
   assert.equal(result.pass, false);
   assert.equal(result.fail_count, 1);
   assert.equal(result.failures[0]?.check, "auth_context");
+});
+
+test("multicaDoctorCheck includes cli_syntax failure in failures array", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    cliSyntax: {
+      execHelp: () => "multica issue status <id> --set <status>",
+    },
+    registryTables: healthyRegistryTables,
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "cli_syntax");
+});
+
+test("multicaDoctorCheck includes registry_tables failure in failures array", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    cliSyntax: healthyCliSyntax,
+    registryTables: {
+      cwd: () => "/vault",
+      getVaultRoot: () => undefined,
+      existsSync: () => false,
+      readFileSync: () => "",
+    },
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "registry_tables");
 });
