@@ -59,7 +59,7 @@
     "@earendil-works/pi-tui": "^0.85.1",
     "@types/node": "^26.0.0",
     "typebox": "latest",
-    "typescript": "^6.0.3"
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": ">=22.18.0"
