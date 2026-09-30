@@ -5,6 +5,11 @@
  * Real probe logic is implemented in later build slices.
  */
 
+import {
+  checkAuthContext,
+  type AuthContextDeps,
+} from "./probes/auth_context.ts";
+
 export const CHECK_NAMES = [
   "auth_context",
   "cli_syntax",
@@ -37,8 +42,19 @@ export interface MulticaDoctorResult {
   failures: CheckFailure[];
 }
 
+export interface MulticaDoctorCheckOptions {
+  authContext?: AuthContextDeps;
+}
+
 function buildStaticProbeResults(): ProbeResult[] {
-  return CHECK_NAMES.map((check) => ({ check, status: "pass" }));
+  return CHECK_NAMES.filter((check) => check !== "auth_context").map(
+    (check) => ({ check, status: "pass" }),
+  );
+}
+
+function buildProbeResults(options: MulticaDoctorCheckOptions = {}): ProbeResult[] {
+  const authContext = checkAuthContext(options.authContext);
+  return [authContext, ...buildStaticProbeResults()];
 }
 
 function toFailures(results: readonly ProbeResult[]): CheckFailure[] {
@@ -54,11 +70,11 @@ function toFailures(results: readonly ProbeResult[]): CheckFailure[] {
 
 /**
  * Run Multica workspace health checks.
- *
- * Scaffold stub: all probes report pass with an empty failures array.
  */
-export function multicaDoctorCheck(): MulticaDoctorResult {
-  const results = buildStaticProbeResults();
+export function multicaDoctorCheck(
+  options: MulticaDoctorCheckOptions = {},
+): MulticaDoctorResult {
+  const results = buildProbeResults(options);
   const failures = toFailures(results);
 
   return {
@@ -70,6 +86,8 @@ export function multicaDoctorCheck(): MulticaDoctorResult {
 }
 
 /** Exposed for tests: each probe's `{ check, status }` semantics. */
-export function getProbeResults(): readonly ProbeResult[] {
-  return buildStaticProbeResults();
+export function getProbeResults(
+  options: MulticaDoctorCheckOptions = {},
+): readonly ProbeResult[] {
+  return buildProbeResults(options);
 }

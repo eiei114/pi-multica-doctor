@@ -1,6 +1,6 @@
 {
   "name": "pi-multica-doctor",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Multica workspace health, one command",
   "type": "module",
   "license": "MIT",
@@ -52,11 +52,11 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.3"
+    "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.6",
-    "@earendil-works/pi-tui": "^0.80.6",
+    "@earendil-works/pi-coding-agent": "^0.99.1",
+    "@earendil-works/pi-tui": "^0.99.1",
     "@types/node": "^26.0.0",
     "typebox": "latest",
     "typescript": "^6.0.3"
