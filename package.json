@@ -1,6 +1,6 @@
 {
   "name": "pi-multica-doctor",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Multica workspace health, one command",
   "type": "module",
   "license": "MIT",
@@ -59,7 +59,7 @@
     "@earendil-works/pi-tui": "^0.99.1",
     "@types/node": "^26.0.0",
     "typebox": "latest",
-    "typescript": "7.0.2"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.18.0"
