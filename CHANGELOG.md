@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1] - 2026-09-30
+
+### Changed
+
+- Update `@earendil-works/pi-*` dependencies to `0.99.1`.
+
+
 ## 0.1.0 - 2026-07-30
 
 - initial scaffold from `pi-extension-template`
