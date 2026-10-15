@@ -1,9 +1,9 @@
 export const VERIFICATION_CONTRACT = "pi-sdk-behavior-v2";
 export const SDK_VERSIONS = Object.freeze({
-  "@earendil-works/pi-agent-core": "1.1.0",
-  "@earendil-works/pi-ai": "1.1.0",
-  "@earendil-works/pi-coding-agent": "1.1.0",
-  "@earendil-works/pi-tui": "1.1.0",
+  "@earendil-works/pi-agent-core": "1.2.0",
+  "@earendil-works/pi-ai": "1.2.0",
+  "@earendil-works/pi-coding-agent": "1.2.0",
+  "@earendil-works/pi-tui": "1.2.0",
 });
 export const UNHANDLED_ERROR_PATTERN = /UnhandledPromiseRejection|uncaught exception|(?:shutdown|dispos(?:e|al)).{0,40}(?:error|fail)|(?:error|fail).{0,40}(?:shutdown|dispos(?:e|al))/i;
 export const EXTENSION_LOAD_ERROR_PATTERN = /Failed to load extension|Error loading extension/i;
@@ -70,7 +70,7 @@ function shutdownObservation(process) {
 }
 
 export function behaviorAssertions(name, { responses = [], doctorResult = null, process = null,
-  firstProcess = null, secondProcess = null, shellOutput = "", expectedVersion = "1.1.0",
+  firstProcess = null, secondProcess = null, shellOutput = "", expectedVersion = "1.2.0",
   tokenLeak = false } = {}) {
   if (name === "extension_load") {
     const registration = commandRegistration(responses);
