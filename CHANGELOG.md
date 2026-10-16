@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 - 2026-10-16
+
+- align the Pi runtime peer contract and verify installation with Pi SDK 1.2.0
+
 ## 0.1.0 - 2026-07-30
 
 - initial scaffold from `pi-extension-template`

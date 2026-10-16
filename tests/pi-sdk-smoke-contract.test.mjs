@@ -46,10 +46,10 @@ const closedProcess = (responses = [registration, prompt], doctorResult = health
 test("compatibility contract pins all four frozen Pi SDK packages", () => {
   assert.equal(VERIFICATION_CONTRACT, "pi-sdk-behavior-v2");
   assert.deepEqual(SDK_VERSIONS, {
-    "@earendil-works/pi-agent-core": "1.1.0",
-    "@earendil-works/pi-ai": "1.1.0",
-    "@earendil-works/pi-coding-agent": "1.1.0",
-    "@earendil-works/pi-tui": "1.1.0",
+    "@earendil-works/pi-agent-core": "1.2.0",
+    "@earendil-works/pi-ai": "1.2.0",
+    "@earendil-works/pi-coding-agent": "1.2.0",
+    "@earendil-works/pi-tui": "1.2.0",
   });
 });
 
@@ -132,12 +132,12 @@ test("reload_cleanup requires second-process registration and feature response p
 
 test("host_shell requires exact local Pi version output and clean process exit", () => {
   assert.equal(behaviorAssertions("host_shell", {
-    process: closedProcess([], null), shellOutput: "1.1.0\r\n", expectedVersion: "1.1.0",
+    process: closedProcess([], null), shellOutput: "1.2.0\r\n", expectedVersion: "1.2.0",
   })[0].passed, true);
-  for (const [stdout, exitCode] of [["", 0], ["11.1.0", 0], ["1.1.0 with warning", 0], ["1.1.0", 1]]) {
+  for (const [stdout, exitCode] of [["", 0], ["11.2.0", 0], ["1.2.0 with warning", 0], ["1.2.0", 1]]) {
     assert.equal(behaviorAssertions("host_shell", {
       process: closedProcess([], null, { exit_code: exitCode }), shellOutput: stdout,
-      expectedVersion: "1.1.0",
+      expectedVersion: "1.2.0",
     })[0].passed, false);
   }
 });

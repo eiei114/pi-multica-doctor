@@ -2,10 +2,10 @@
   "schema_version": 1,
   "verification_contract": "pi-sdk-behavior-v2",
   "sdk_versions": {
-    "@earendil-works/pi-agent-core": "1.1.0",
-    "@earendil-works/pi-ai": "1.1.0",
-    "@earendil-works/pi-coding-agent": "1.1.0",
-    "@earendil-works/pi-tui": "1.1.0"
+    "@earendil-works/pi-agent-core": "1.2.0",
+    "@earendil-works/pi-ai": "1.2.0",
+    "@earendil-works/pi-coding-agent": "1.2.0",
+    "@earendil-works/pi-tui": "1.2.0"
   },
   "platform": "win32",
   "model_inference": "none; deterministic MULTICA_TOKEN presence/absence fixtures sent to the actual extension command",
@@ -108,7 +108,7 @@
             "cleanup_finished": true,
             "spawn_error": null,
             "input_error": null,
-            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"a736de3f-ce4c-4c86-a899-76c914cc61ff\",\"method\":\"notify\",\"message\":\"Multica workspace checks passed\",\"notifyType\":\"info\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
+            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"bb80415f-4cd7-47b3-b069-ad1cff42a66c\",\"method\":\"notify\",\"message\":\"Multica workspace checks passed\",\"notifyType\":\"info\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
             "stderr": "{\n  \"checks\": [\n    \"auth_context\",\n    \"cli_syntax\",\n    \"registry_tables\",\n    \"feedback_jsonl\",\n    \"stuck_runs\"\n  ],\n  \"pass\": true,\n  \"fail_count\": 0,\n  \"failures\": []\n}\n",
             "truncated": false
           }
@@ -159,7 +159,7 @@
             "cleanup_finished": true,
             "spawn_error": null,
             "input_error": null,
-            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"9c212db3-cf87-4acf-9aa0-b6263bd575ca\",\"method\":\"notify\",\"message\":\"1 Multica workspace check(s) failed\",\"notifyType\":\"warning\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
+            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"90368de2-c259-4910-a4dc-3d8973f37793\",\"method\":\"notify\",\"message\":\"1 Multica workspace check(s) failed\",\"notifyType\":\"warning\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
             "stderr": "{\n  \"checks\": [\n    \"auth_context\",\n    \"cli_syntax\",\n    \"registry_tables\",\n    \"feedback_jsonl\",\n    \"stuck_runs\"\n  ],\n  \"pass\": false,\n  \"fail_count\": 1,\n  \"failures\": [\n    {\n      \"check\": \"auth_context\",\n      \"status\": \"fail\",\n      \"detail\": \"MULTICA_TOKEN: absent\",\n      \"hint\": \"Set MULTICA_TOKEN environment variable\"\n    }\n  ]\n}\n",
             "truncated": false
           }
@@ -222,7 +222,7 @@
             "cleanup_finished": true,
             "spawn_error": null,
             "input_error": null,
-            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"4742a31f-a863-41ba-9722-bfec5d560180\",\"method\":\"notify\",\"message\":\"Multica workspace checks passed\",\"notifyType\":\"info\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
+            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"5e8de2b8-6c39-4c3d-a3d0-5c70f494bb0c\",\"method\":\"notify\",\"message\":\"Multica workspace checks passed\",\"notifyType\":\"info\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
             "stderr": "{\n  \"checks\": [\n    \"auth_context\",\n    \"cli_syntax\",\n    \"registry_tables\",\n    \"feedback_jsonl\",\n    \"stuck_runs\"\n  ],\n  \"pass\": true,\n  \"fail_count\": 0,\n  \"failures\": []\n}\n",
             "truncated": false
           },
@@ -252,7 +252,7 @@
             "cleanup_finished": true,
             "spawn_error": null,
             "input_error": null,
-            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"aff9c623-4887-43f5-8a26-515cfd8523a8\",\"method\":\"notify\",\"message\":\"Multica workspace checks passed\",\"notifyType\":\"info\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
+            "stdout": "{\"type\":\"extension_ui_request\",\"id\":\"b1f99263-473c-4da7-8bc4-90f2a51283dd\",\"method\":\"notify\",\"message\":\"Multica workspace checks passed\",\"notifyType\":\"info\"}\n{\"id\":\"commands\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"multica-doctor-check\",\"description\":\"Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<extension>\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"doctor\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n",
             "stderr": "{\n  \"checks\": [\n    \"auth_context\",\n    \"cli_syntax\",\n    \"registry_tables\",\n    \"feedback_jsonl\",\n    \"stuck_runs\"\n  ],\n  \"pass\": true,\n  \"fail_count\": 0,\n  \"failures\": []\n}\n",
             "truncated": false
           }
@@ -268,7 +268,7 @@
         {
           "id": "native_shell_boundary",
           "expected": "The native host shell launches the locally pinned Pi CLI and prints exactly its installed SDK version",
-          "observed": "{\"exit_code\":0,\"timed_out\":false,\"stdout\":\"1.1.0\",\"stderr\":\"\",\"expectedVersion\":\"1.1.0\"}",
+          "observed": "{\"exit_code\":0,\"timed_out\":false,\"stdout\":\"1.2.0\",\"stderr\":\"\",\"expectedVersion\":\"1.2.0\"}",
           "passed": true
         }
       ],
@@ -293,7 +293,7 @@
             "cleanup_finished": true,
             "spawn_error": null,
             "input_error": null,
-            "stdout": "1.1.0\n",
+            "stdout": "1.2.0\n",
             "stderr": "",
             "truncated": false
           }
