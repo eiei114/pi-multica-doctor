@@ -2,7 +2,7 @@
 
 ## 0.1.1 - 2026-10-16
 
-- verify Pi SDK 1.2.0 compatibility with exact dev/test pins
+- align the Pi runtime peer contract and verify installation with Pi SDK 1.2.0
 
 ## 0.1.0 - 2026-07-30
 
