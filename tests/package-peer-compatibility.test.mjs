@@ -23,11 +23,13 @@ function runNpm(args, cwd, timeout) {
   return result;
 }
 
-test("published package installs alongside the Pi 1.2.0 host", { timeout: 180_000 }, () => {
+test("published package installs alongside the Pi 1.2.0 host", { timeout: 90_000 }, () => {
   const temp = mkdtempSync(join(tmpdir(), "pi-multica-doctor-peer-"));
   const packedDir = join(temp, "packed");
+  const hostDir = join(temp, "pi-host");
   const installDir = join(temp, "install");
   mkdirSync(packedDir);
+  mkdirSync(hostDir);
   mkdirSync(installDir);
 
   try {
@@ -37,17 +39,23 @@ test("published package installs alongside the Pi 1.2.0 host", { timeout: 180_00
 
     const tarball = readdirSync(packedDir).find((file) => file.endsWith(".tgz"));
     assert.ok(tarball, "npm pack must produce the package tarball");
+    // Peer resolution needs the exact Pi package identity/version; the real host is exercised by the smoke harness.
+    writeFileSync(join(hostDir, "package.json"), `${JSON.stringify({
+      name: piPackage,
+      version: piVersion,
+      private: true,
+    }, null, 2)}\n`);
     writeFileSync(join(installDir, "package.json"), `${JSON.stringify({
       name: "pi-multica-doctor-peer-install-fixture",
       version: "1.0.0",
       private: true,
       dependencies: {
-        [piPackage]: piVersion,
+        [piPackage]: "file:../pi-host",
         "pi-multica-doctor": `file:../packed/${tarball}`,
       },
     }, null, 2)}\n`);
 
-    runNpm(["install", "--ignore-scripts", "--no-audit", "--no-fund", "--prefer-offline"], installDir, 120_000);
+    runNpm(["install", "--ignore-scripts", "--no-audit", "--no-fund", "--offline"], installDir, 30_000);
 
     const installedPackage = JSON.parse(readFileSync(
       join(installDir, "node_modules/pi-multica-doctor/package.json"), "utf8",
