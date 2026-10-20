@@ -1,10 +1,13 @@
 name: Auto Release
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - package.json
+  workflow_dispatch:
+    inputs:
+      release_authorized:
+        description: "Confirm explicit owner authorization to create a release and publish to npm."
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   actions: write
@@ -13,6 +16,7 @@ permissions:
 jobs:
   release:
     name: Create release for new version
+    if: github.ref == 'refs/heads/main' && inputs.release_authorized == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,26 +28,16 @@ jobs:
         id: check
         shell: bash
         run: |
-          BEFORE="${{ github.event.before }}"
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           TAG="v${CURRENT_VERSION}"
-
-          if [ -z "$BEFORE" ] || printf '%s' "$BEFORE" | grep -Eq '^0+$'; then
-            echo "No previous commit is available; skipping auto release."
-            echo "released=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --sort=-version:refname | head -n 1)
+          PREVIOUS_VERSION=""
+          if [ -n "$PREVIOUS_TAG" ]; then
+            PREVIOUS_VERSION=$(git show "${PREVIOUS_TAG}:package.json" | node -e "let input=''; process.stdin.on('data', c => input += c); process.stdin.on('end', () => console.log(JSON.parse(input).version || ''));")
           fi
 
-          if ! git cat-file -e "${BEFORE}:package.json" 2>/dev/null; then
-            echo "Previous package.json is not available; skipping auto release."
-            echo "released=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          PREVIOUS_VERSION=$(git show "${BEFORE}:package.json" | node -e "let input=''; process.stdin.on('data', c => input += c); process.stdin.on('end', () => console.log(JSON.parse(input).version || ''));")
-
-          if [ "$CURRENT_VERSION" = "$PREVIOUS_VERSION" ]; then
-            echo "package.json version did not change (${CURRENT_VERSION}); skipping."
+          if [ -n "$PREVIOUS_VERSION" ] && [ "$CURRENT_VERSION" = "$PREVIOUS_VERSION" ]; then
+            echo "package.json version matches the last released version (${CURRENT_VERSION}); skipping."
             echo "released=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -54,7 +48,7 @@ jobs:
             exit 0
           fi
 
-          echo "Version bump detected: ${PREVIOUS_VERSION} -> ${CURRENT_VERSION}."
+          echo "Version bump detected: ${PREVIOUS_VERSION:-none} -> ${CURRENT_VERSION}."
           echo "released=true" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
@@ -66,7 +60,8 @@ jobs:
           PREV_TAG=$(git tag --sort=-version:refname | head -1)
           NOTES="Released ${TAG}."
           if [ -n "$PREV_TAG" ]; then
-            NOTES="${NOTES}\n\n**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
+            printf -v NOTES '%s\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s' \
+              "$NOTES" "${{ github.repository }}" "$PREV_TAG" "$TAG"
           fi
           git tag "$TAG"
           git push origin "$TAG"
