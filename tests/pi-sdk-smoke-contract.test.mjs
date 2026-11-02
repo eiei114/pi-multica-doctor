@@ -3,9 +3,13 @@ import test from "node:test";
 import {
   behaviorAssertions,
   parseJsonLines,
+  PI_CLI_VERSION,
   SDK_VERSIONS,
   VERIFICATION_CONTRACT,
 } from "../scripts/pi-sdk-smoke-contract.mjs";
+import { readFileSync } from "node:fs";
+
+const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 const registration = {
   type: "response",
@@ -43,14 +47,12 @@ const closedProcess = (responses = [registration, prompt], doctorResult = health
   ...overrides,
 });
 
-test("compatibility contract pins all four frozen Pi SDK packages", () => {
+test("compatibility smoke follows the manifest-pinned Pi SDK packages", () => {
   assert.equal(VERIFICATION_CONTRACT, "pi-sdk-behavior-v2");
-  assert.deepEqual(SDK_VERSIONS, {
-    "@earendil-works/pi-agent-core": "1.2.0",
-    "@earendil-works/pi-ai": "1.2.0",
-    "@earendil-works/pi-coding-agent": "1.2.0",
-    "@earendil-works/pi-tui": "1.2.0",
-  });
+  assert.deepEqual(SDK_VERSIONS, Object.fromEntries(
+    Object.entries(manifest.devDependencies).filter(([name]) => name.startsWith("@earendil-works/pi-")),
+  ));
+  assert.equal(PI_CLI_VERSION, manifest.devDependencies["@earendil-works/pi-coding-agent"]);
 });
 
 test("RPC JSONL parser accepts LF and CRLF while ignoring malformed records", () => {
@@ -132,12 +134,12 @@ test("reload_cleanup requires second-process registration and feature response p
 
 test("host_shell requires exact local Pi version output and clean process exit", () => {
   assert.equal(behaviorAssertions("host_shell", {
-    process: closedProcess([], null), shellOutput: "1.2.0\r\n", expectedVersion: "1.2.0",
+    process: closedProcess([], null), shellOutput: `${PI_CLI_VERSION}\r\n`, expectedVersion: PI_CLI_VERSION,
   })[0].passed, true);
-  for (const [stdout, exitCode] of [["", 0], ["11.2.0", 0], ["1.2.0 with warning", 0], ["1.2.0", 1]]) {
+  for (const [stdout, exitCode] of [["", 0], ["unexpected-version", 0], [`${PI_CLI_VERSION} with warning`, 0], [PI_CLI_VERSION, 1]]) {
     assert.equal(behaviorAssertions("host_shell", {
       process: closedProcess([], null, { exit_code: exitCode }), shellOutput: stdout,
-      expectedVersion: "1.2.0",
+      expectedVersion: PI_CLI_VERSION,
     })[0].passed, false);
   }
 });

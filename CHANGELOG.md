@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6 - 2026-11-02
+
+- align the Pi SDK smoke checks with manifest-pinned package versions
+
 ## 0.1.1 - 2026-10-16
 
 - align the Pi runtime peer contract and verify installation with Pi SDK 1.2.0
