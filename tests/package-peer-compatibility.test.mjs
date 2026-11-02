@@ -7,7 +7,7 @@ import test from "node:test";
 
 const root = resolve(import.meta.dirname, "..");
 const piPackage = "@earendil-works/pi-coding-agent";
-const piVersion = "1.2.0";
+const piVersion = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")).devDependencies[piPackage];
 const npmCli = process.env.npm_execpath;
 
 function runNpm(args, cwd, timeout) {
@@ -23,7 +23,7 @@ function runNpm(args, cwd, timeout) {
   return result;
 }
 
-test("published package installs alongside the Pi 1.2.0 host", { timeout: 90_000 }, () => {
+test("published package installs alongside the Pi host version pinned in the manifest", { timeout: 90_000 }, () => {
   const temp = mkdtempSync(join(tmpdir(), "pi-multica-doctor-peer-"));
   const packedDir = join(temp, "packed");
   const hostDir = join(temp, "pi-host");
