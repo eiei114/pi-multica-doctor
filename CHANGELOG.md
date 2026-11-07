@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 - 2026-11-07
+
+- pin the development SDK to Pi 1.5.0 and verify extension behavior against the actual runtime
+
 ## 0.1.6 - 2026-11-02
 
 - align the Pi SDK smoke checks with manifest-pinned package versions
