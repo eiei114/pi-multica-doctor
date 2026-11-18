@@ -9,6 +9,7 @@ import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import {
   multicaDoctorCheck,
+  runDoctorCheckSafely,
   type MulticaDoctorResult,
 } from "../src/multica_doctor_check.ts";
 
@@ -19,7 +20,7 @@ export default function (pi: ExtensionAPI) {
     description:
       "Run Multica workspace health diagnostics (auth, CLI syntax, registry, JSONL, stuck runs)",
     handler: async (_args, ctx) => {
-      const result = multicaDoctorCheck();
+      const result = runDoctorCheckSafely(multicaDoctorCheck);
       const formatted = JSON.stringify(result, null, 2);
       if (ctx.hasUI) {
         ctx.ui.notify(
@@ -50,7 +51,7 @@ export default function (pi: ExtensionAPI) {
         return { content: [{ type: "text", text: "Cancelled" }], details: {} };
       }
 
-      const result = multicaDoctorCheck();
+      const result = runDoctorCheckSafely(multicaDoctorCheck);
       const formatted = JSON.stringify(result, null, 2);
 
       return {
