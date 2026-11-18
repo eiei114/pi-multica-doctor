@@ -4,7 +4,7 @@
 
 `pi-multica-doctor` is a Pi extension that runs read-only Multica workspace diagnostics in a single compact JSON report. It checks auth context, CLI syntax drift, registry table integrity, feedback JSONL well-formedness, and stuck in-progress runs.
 
-This repository currently ships a **walking skeleton**: the `multica_doctor_check` tool and CLI return a static JSON contract with all five probes stubbed as `pass`. Real probe logic lands in later build slices.
+This repository currently ships a **walking skeleton**: the `multica_doctor_check` tool and CLI return a static JSON contract. The `auth_context` and `feedback_jsonl` probes are implemented; the remaining three probes are still stubbed as `pass`. Real probe logic for those lands in later build slices.
 
 ## Install
 
