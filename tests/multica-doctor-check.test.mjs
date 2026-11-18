@@ -79,6 +79,38 @@ test("multicaDoctorCheck never throws", () => {
   assert.doesNotThrow(() => multicaDoctorCheck(healthyDeps));
 });
 
+test("a throwing probe fails only its check and does not stop later probes", () => {
+  const message = "feedback file access denied";
+  const options = {
+    ...healthyDeps,
+    probeOverrides: {
+      feedback_jsonl: () => {
+        throw new Error(message);
+      },
+    },
+  };
+
+  const probes = getProbeResults(options);
+  assert.deepEqual(probes.map(({ check }) => check), [...CHECK_NAMES]);
+  assert.deepEqual(
+    probes.filter(({ check }) => check !== "feedback_jsonl").map(({ status }) => status),
+    ["pass", "pass", "pass", "pass"],
+  );
+  assert.equal(probes.find(({ check }) => check === "feedback_jsonl")?.status, "fail");
+
+  const result = multicaDoctorCheck(options);
+  assert.deepEqual(result.checks, [...CHECK_NAMES]);
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "feedback_jsonl");
+  assert.equal(
+    result.failures[0]?.detail,
+    `feedback_jsonl probe error: ${message}`,
+  );
+  assert.doesNotMatch(result.failures[0]?.hint ?? "", new RegExp(message));
+  assert.equal(JSON.stringify(result).split(message).length - 1, 1);
+});
+
 test("auth_context passes when daemon marker is absent and token is present", () => {
   const result = checkAuthContext(healthyAuthContext);
 
