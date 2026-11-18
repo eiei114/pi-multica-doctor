@@ -51,11 +51,10 @@ export interface InvalidJsonlLine {
  * pretty-printed JSON object spread across several lines is reported as invalid
  * (the "merge line" case). Read-only: nothing is repaired or rewritten.
  */
-export function findInvalidJsonlLines(
+function* iterateInvalidJsonlLines(
   filename: string,
   content: string,
-): InvalidJsonlLine[] {
-  const invalid: InvalidJsonlLine[] = [];
+): Generator<InvalidJsonlLine> {
   const lines = content.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
@@ -65,18 +64,23 @@ export function findInvalidJsonlLines(
     try {
       JSON.parse(line);
     } catch {
-      invalid.push({
+      yield {
         filename,
         line: i + 1,
         excerpt:
           line.length > MAX_EXCERPT_CHARS
             ? `${line.slice(0, MAX_EXCERPT_CHARS)}…`
             : line,
-      });
+      };
     }
   }
+}
 
-  return invalid;
+export function findInvalidJsonlLines(
+  filename: string,
+  content: string,
+): InvalidJsonlLine[] {
+  return [...iterateInvalidJsonlLines(filename, content)];
 }
 
 /**
@@ -103,7 +107,8 @@ export function checkFeedbackJsonl(
     };
   }
 
-  const invalid: InvalidJsonlLine[] = [];
+  const reported: InvalidJsonlLine[] = [];
+  let invalidCount = 0;
   for (const filePath of files) {
     let content: string;
     try {
@@ -118,10 +123,18 @@ export function checkFeedbackJsonl(
         hint: `Fix file access for feedback-events/${filename}`,
       };
     }
-    invalid.push(...findInvalidJsonlLines(basename(filePath), content));
+    for (const invalidLine of iterateInvalidJsonlLines(
+      basename(filePath),
+      content,
+    )) {
+      invalidCount++;
+      if (reported.length < MAX_REPORTED_LINES) {
+        reported.push(invalidLine);
+      }
+    }
   }
 
-  if (invalid.length === 0) {
+  if (invalidCount === 0) {
     return {
       check: "feedback_jsonl",
       status: "pass",
@@ -132,15 +145,14 @@ export function checkFeedbackJsonl(
     };
   }
 
-  const reported = invalid.slice(0, MAX_REPORTED_LINES);
   const entries = reported.map((item) => `${item.filename}:${item.line}`);
-  const hidden = invalid.length - reported.length;
+  const hidden = invalidCount - reported.length;
   if (hidden > 0) entries.push(`and ${hidden} more`);
 
   return {
     check: "feedback_jsonl",
     status: "fail",
-    detail: `${invalid.length} invalid JSON line(s): ${entries.join("; ")}`,
+    detail: `${invalidCount} invalid JSON line(s): ${entries.join("; ")}`,
     hint: `Merge each event onto one line and reformat pretty-printed JSON; bad line excerpt: ${reported[0].excerpt}`,
   };
 }

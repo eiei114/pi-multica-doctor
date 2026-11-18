@@ -93,6 +93,23 @@ test("feedback_jsonl failure detail is bounded and embeds only a short excerpt",
   assert.ok(!(result.hint ?? "").includes(longBadLine));
 });
 
+test("feedback_jsonl safely bounds details for 150,000 invalid lines", () => {
+  const content = new Array(150_000).fill("not-json").join("\n");
+  const result = checkFeedbackJsonl({
+    cwd: () => "/workspace",
+    discoverJsonlFiles: () => ["/feedback/large.jsonl"],
+    readText: () => content,
+  });
+
+  assert.equal(result.status, "fail");
+  assert.equal(
+    result.detail,
+    "150000 invalid JSON line(s): large.jsonl:1; large.jsonl:2; large.jsonl:3; large.jsonl:4; large.jsonl:5; and 149995 more",
+  );
+  assert.ok((result.hint ?? "").length < MAX_EXCERPT_CHARS + 120);
+  assert.ok(!(result.hint ?? "").includes(content));
+});
+
 test("feedback_jsonl degrades a missing/unreadable directory to a check failure", () => {
   const deps = {
     cwd: () => "/workspace",
