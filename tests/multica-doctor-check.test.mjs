@@ -18,8 +18,19 @@ const healthyAuthContext = {
   getToken: () => "test-token",
 };
 
+const healthyFeedbackJsonl = {
+  cwd: () => "/workspace",
+  discoverJsonlFiles: () => [join("/workspace", "feedback-events", "2026-11.jsonl")],
+  readText: () => '{"id":1}\n{"id":2}\n',
+};
+
+const healthyDeps = {
+  authContext: healthyAuthContext,
+  feedbackJsonl: healthyFeedbackJsonl,
+};
+
 test("multicaDoctorCheck returns the expected JSON contract shape", () => {
-  const result = multicaDoctorCheck({ authContext: healthyAuthContext });
+  const result = multicaDoctorCheck(healthyDeps);
 
   assert.deepEqual(result.checks, [...CHECK_NAMES]);
   assert.equal(result.pass, true);
@@ -28,7 +39,7 @@ test("multicaDoctorCheck returns the expected JSON contract shape", () => {
 });
 
 test("multicaDoctorCheck lists all five probes", () => {
-  const result = multicaDoctorCheck({ authContext: healthyAuthContext });
+  const result = multicaDoctorCheck(healthyDeps);
 
   assert.equal(result.checks.length, 5);
   assert.deepEqual(result.checks, [
@@ -40,20 +51,32 @@ test("multicaDoctorCheck lists all five probes", () => {
   ]);
 });
 
-test("non-auth probes remain stubbed as pass", () => {
-  const results = getProbeResults({ authContext: healthyAuthContext });
+test("non-implemented probes remain stubbed as pass", () => {
+  const results = getProbeResults(healthyDeps);
 
   assert.equal(results.length, 5);
   for (const probe of results) {
     assert.ok(CHECK_NAMES.includes(probe.check));
-    if (probe.check !== "auth_context") {
+    if (
+      probe.check !== "auth_context" &&
+      probe.check !== "feedback_jsonl"
+    ) {
       assert.equal(probe.status, "pass");
     }
   }
 });
 
+test("feedback_jsonl is a real probe in getProbeResults", () => {
+  const results = getProbeResults(healthyDeps);
+  const feedback = results.find((probe) => probe.check === "feedback_jsonl");
+
+  assert.ok(feedback);
+  assert.equal(feedback.status, "pass");
+  assert.match(feedback.detail ?? "", /valid JSON lines/);
+});
+
 test("multicaDoctorCheck never throws", () => {
-  assert.doesNotThrow(() => multicaDoctorCheck({ authContext: healthyAuthContext }));
+  assert.doesNotThrow(() => multicaDoctorCheck(healthyDeps));
 });
 
 test("auth_context passes when daemon marker is absent and token is present", () => {
@@ -126,9 +149,45 @@ test("multicaDoctorCheck includes auth_context failure in failures array", () =>
       existsSync: () => true,
       getToken: () => undefined,
     },
+    feedbackJsonl: healthyFeedbackJsonl,
   });
 
   assert.equal(result.pass, false);
   assert.equal(result.fail_count, 1);
   assert.equal(result.failures[0]?.check, "auth_context");
+});
+
+test("multicaDoctorCheck includes feedback_jsonl failure in failures array", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    feedbackJsonl: {
+      cwd: () => "/workspace",
+      discoverJsonlFiles: () => [join("/workspace", "feedback-events", "2026-11.jsonl")],
+      readText: () => '{"ok":true}\nbroken-line\n',
+    },
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "feedback_jsonl");
+  assert.match(result.failures[0]?.detail ?? "", /2026-11\.jsonl:2/);
+});
+
+test("multicaDoctorCheck still returns the full contract when a directory is missing", () => {
+  const result = multicaDoctorCheck({
+    authContext: healthyAuthContext,
+    feedbackJsonl: {
+      cwd: () => "/workspace",
+      discoverJsonlFiles: () => {
+        throw new Error("directory missing");
+      },
+      readText: () => "",
+    },
+  });
+
+  assert.deepEqual(result.checks, [...CHECK_NAMES]);
+  assert.equal(result.pass, false);
+  assert.equal(result.fail_count, 1);
+  assert.equal(result.failures[0]?.check, "feedback_jsonl");
+  assert.match(result.failures[0]?.detail ?? "", /directory missing/);
 });

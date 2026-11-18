@@ -1,14 +1,18 @@
 /**
  * pi-multica-doctor — Multica workspace health diagnostics
  *
- * Walking skeleton: returns a static JSON contract with all probes stubbed as pass.
- * Real probe logic is implemented in later build slices.
+ * Walking skeleton: returns a static JSON contract. auth_context and
+ * feedback_jsonl are real probes; the other three are stubbed as pass.
  */
 
 import {
   checkAuthContext,
   type AuthContextDeps,
 } from "./probes/auth_context.ts";
+import {
+  checkFeedbackJsonl,
+  type FeedbackJsonlDeps,
+} from "./probes/feedback_jsonl.ts";
 
 export const CHECK_NAMES = [
   "auth_context",
@@ -44,17 +48,25 @@ export interface MulticaDoctorResult {
 
 export interface MulticaDoctorCheckOptions {
   authContext?: AuthContextDeps;
+  feedbackJsonl?: FeedbackJsonlDeps;
 }
 
 function buildStaticProbeResults(): ProbeResult[] {
-  return CHECK_NAMES.filter((check) => check !== "auth_context").map(
-    (check) => ({ check, status: "pass" }),
-  );
+  return CHECK_NAMES.filter(
+    (check) => check !== "auth_context" && check !== "feedback_jsonl",
+  ).map((check) => ({ check, status: "pass" }));
 }
 
 function buildProbeResults(options: MulticaDoctorCheckOptions = {}): ProbeResult[] {
-  const authContext = checkAuthContext(options.authContext);
-  return [authContext, ...buildStaticProbeResults()];
+  return CHECK_NAMES.map((check) => {
+    if (check === "auth_context") {
+      return checkAuthContext(options.authContext);
+    }
+    if (check === "feedback_jsonl") {
+      return checkFeedbackJsonl(options.feedbackJsonl);
+    }
+    return { check, status: "pass" } as const;
+  });
 }
 
 function toFailures(results: readonly ProbeResult[]): CheckFailure[] {
