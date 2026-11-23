@@ -14,6 +14,15 @@ import {
 
 const emptyParameters = Type.Object({});
 
+function renderText(text: string) {
+  const component = new Text(text, 0, 0);
+  return {
+    // Older Pi hosts expect mutable lines; don't expose pi-tui's cached array.
+    render: (width: number) => [...component.render(width)],
+    invalidate: () => component.invalidate(),
+  };
+}
+
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("multica-doctor-check", {
     description:
@@ -60,7 +69,7 @@ export default function (pi: ExtensionAPI) {
     },
 
     renderCall(_args, theme, _context) {
-      return new Text(theme.fg("toolTitle", theme.bold("multica_doctor_check")), 0, 0);
+      return renderText(theme.fg("toolTitle", theme.bold("multica_doctor_check")));
     },
 
     renderResult(result, { expanded }, theme, _context) {
@@ -76,7 +85,7 @@ export default function (pi: ExtensionAPI) {
         text += `\n${theme.fg("dim", `checks: ${details.checks.join(", ")}`)}`;
       }
 
-      return new Text(text, 0, 0);
+      return renderText(text);
     },
   });
 }
