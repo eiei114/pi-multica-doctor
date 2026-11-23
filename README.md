@@ -2,9 +2,7 @@
 
 > Multica workspace health, one command.
 
-`pi-multica-doctor` is a Pi extension that runs read-only Multica workspace diagnostics in a single compact JSON report. It checks auth context, CLI syntax drift, registry table integrity, feedback JSONL well-formedness, and stuck in-progress runs.
-
-This repository currently ships a **walking skeleton**: the `multica_doctor_check` tool and CLI return a static JSON contract. The `auth_context` and `feedback_jsonl` probes are implemented; the remaining three probes are still stubbed as `pass`. Real probe logic for those lands in later build slices.
+`pi-multica-doctor` is a Pi extension that reports read-only Multica workspace diagnostics as JSON. It currently runs two real probes: `auth_context` and `feedback_jsonl`.
 
 ## Install
 
@@ -45,11 +43,21 @@ Agents can call `multica_doctor_check` directly. The tool returns JSON like:
 }
 ```
 
+The `checks` array lists the fixed set of check names, not which diagnostics actually ran. In this example, `pass: true` means no failures were reported; it does not mean all five diagnostics ran.
+
+- **`auth_context`** checks that `MULTICA_TOKEN` is nonempty and that `.multica/daemon_task_context.json` is absent from the current working directory. It does not validate the token with Multica.
+- **`feedback_jsonl`** parses each nonblank line of the `.jsonl` files directly in `4_Project/Multica-Agent-Strategy/Data/feedback-events/`. The probe looks for that path under `OBSIDIAN_VAULT_ROOT` if the variable is set, or under the current working directory if it is unset. It does not fall back to the working directory if the configured path is missing. A missing or unreadable directory, unreadable file, or invalid JSON line fails the probe; an existing directory with no `.jsonl` files passes.
+- **`cli_syntax`, `registry_tables`, and `stuck_runs`** are placeholders that report pass without checking CLI syntax, registry tables, or stuck runs.
+
 ### CLI
 
 ```bash
 npx multica-doctor-check
 ```
+
+If Node refuses to load the installed package's TypeScript under `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`), run `node ./bin/multica-doctor-check.js` from a source checkout instead. Set `OBSIDIAN_VAULT_ROOT` if the checkout isn't the vault root.
+
+When the CLI runs, it writes the JSON report to stdout whether the checks pass or fail. It exits with status `0` when `pass` is `true` and `1` when `pass` is `false`. On failure, see `fail_count` and `failures` in the report. A startup error may exit without a report.
 
 ## Development
 
