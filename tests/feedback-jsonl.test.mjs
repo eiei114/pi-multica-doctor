@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import test from "node:test";
 
@@ -28,6 +31,45 @@ test("FEEDBACK_EVENTS_RELATIVE points at the vault feedback-events folder", () =
     FEEDBACK_EVENTS_RELATIVE,
     join("4_Project", "Multica-Agent-Strategy", "Data", "feedback-events"),
   );
+});
+
+test("feedback_jsonl discovers vault roots with the default dependencies", async (t) => {
+  const fixture = mkdtempSync(join(tmpdir(), "feedback-vaults-"));
+  t.after(() => rmSync(fixture, { recursive: true, force: true }));
+
+  const cwd = join(fixture, "cwd vault");
+  const explicitRoot = join(fixture, "explicit vault");
+  for (const [root, filename, contents] of [
+    [cwd, "cwd.jsonl", '{"id":1}\nnot-json\n'],
+    [explicitRoot, "explicit.jsonl", '{"id":2}\n'],
+  ]) {
+    const eventsDir = join(root, FEEDBACK_EVENTS_RELATIVE);
+    mkdirSync(eventsDir, { recursive: true });
+    writeFileSync(join(eventsDir, filename), contents, "utf8");
+  }
+
+  // Use a child so neither cwd nor the vault-root setting changes for other tests.
+  const probeUrl = new URL("../src/probes/feedback_jsonl.ts", import.meta.url);
+  const runProbe = (env) => JSON.parse(execFileSync(process.execPath, [
+    "--input-type=module",
+    "--eval",
+    `import { checkFeedbackJsonl } from ${JSON.stringify(probeUrl.href)};
+     console.log(JSON.stringify(checkFeedbackJsonl()));`,
+  ], { cwd, env, encoding: "utf8" }));
+
+  await t.test("OBSIDIAN_VAULT_ROOT takes precedence over cwd", () => {
+    const result = runProbe({ OBSIDIAN_VAULT_ROOT: explicitRoot });
+    assert.equal(result.check, "feedback_jsonl");
+    assert.equal(result.status, "pass");
+    assert.equal(result.detail, "All 1 feedback-events JSONL file(s) have valid JSON lines");
+  });
+
+  await t.test("cwd is used when OBSIDIAN_VAULT_ROOT is absent", () => {
+    const result = runProbe({});
+    assert.equal(result.check, "feedback_jsonl");
+    assert.equal(result.status, "fail");
+    assert.equal(result.detail, "1 invalid JSON line(s): cwd.jsonl:2");
+  });
 });
 
 test("feedback_jsonl passes on a well-formed file set", () => {
